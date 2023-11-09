@@ -55,8 +55,24 @@ int main (void)
   return 0;
 }
 
+int checkLeafYear (int year)
+{
+  // Declarations
+  int isLeafYear; // Variable to store the result indicating if the year is a leap year.
 
-int getNumOfDays(int month)
+  // Statements
+  if (((!(year % 4) && (year % 100)) || !(year % 400))) // Check for Leap Year
+  {
+    isLeafYear = TRUE; // The year is a leap year.
+  }
+  else
+  {
+    isLeafYear = FALSE; // The year is not a leap year.
+  }
+  return isLeafYear;
+}
+
+int getNumOfDays(int month, int year)
 {
   int num_of_days = 0;
 
@@ -89,23 +105,6 @@ int getNumOfDays(int month)
   return num_of_days;
 }
 
-int checkLeafYear (int year)
-{
-  // Declarations
-  int isLeafYear; // Variable to store the result indicating if the year is a leap year.
-
-  // Statements
-  if (((!(year % 4) && (year % 100)) || !(year % 400))) // Check for Leap Year
-  {
-    isLeafYear = TRUE; // The year is a leap year.
-  }
-  else
-  {
-    isLeafYear = FALSE; // The year is not a leap year.
-  }
-  return isLeafYear;
-}
-
 int calcYear(long long * timestamp)
 {
   int year = EPOCH;
@@ -114,8 +113,21 @@ int calcYear(long long * timestamp)
 
   days = *timestamp / SECONDS_IN_DAY;
 
+  if (checkLeafYear(year))
+  {
+    days_in_year = DAYS_IN_YEAR + 1;
+  }
+  else
+  {
+    days_in_year = DAYS_IN_YEAR;
+  }
+
   while(days >= days_in_year)
   {
+
+    days -= days_in_year;
+    *timestamp -= days_in_year*SECONDS_IN_DAY;
+    year++;
     if (checkLeafYear(year))
     {
       days_in_year = DAYS_IN_YEAR + 1;
@@ -124,10 +136,6 @@ int calcYear(long long * timestamp)
     {
       days_in_year = DAYS_IN_YEAR;
     }
-
-    days -= days_in_year;
-    *timestamp -= days_in_year*SECONDS_IN_DAY;
-    year++;
   }
 
   return year;
@@ -147,14 +155,15 @@ int calcMonth(long long * timestamp, int year)
   }
   else
   {
-    while(days >= month_days)
+    while(days >= days_of_month)
     {
       days -= days_of_month;
       days_so_far += days_of_month;
       month++;
 
-      days_of_month = getNumOfDays(month); 
-
+      days_of_month = getNumOfDays(month, year); 
+    }
+    
     *timestamp = *timestamp - days_so_far * SECONDS_IN_DAY;
   }
   return month;
@@ -183,12 +192,7 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
 
   // Display Time
   days = timestamp / SECONDS_IN_DAY + 1;
-  days_of_month = getNumOfDays(month);
-
-  if (hours % 12 >= 0 )
-  {
-    hours %= 12;
-  }
+  days_of_month = getNumOfDays(month, year);
 
   hours = hours + offset;
 
@@ -207,12 +211,13 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
         }
     }
   }
-  else if (hours > 12)
+  else if (hours >= 24)
   {
+    hours -= 24;
     days += 1;
     if (days > days_of_month)
     {
-        days -= days_days_of_month;
+        days -= days_of_month;
         months += 1;
         if(months > 12)
         {
@@ -235,8 +240,13 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
   {
     hours %= 12;
   }
+  else if (hours == 0)
+  {
+    hours = 12;
+  }
+   
 
-  printf("UTC %d:  ", offset);
+  printf("UTC %d:   ", offset);
   printf("%d-%d-%d ", years, months, days);
   printf("%d%d", hours / 10, hours % 10);
   printf(":%d%d", minutes / 10, minutes % 10);
@@ -267,7 +277,10 @@ void awareTimezone(long long timestamp)
 
   int spanned_hours = 0;
 
-  while((utc_offset != EXIT_OFFSET) && (count <= MAX_COUNT))
+  int exit_condition = FALSE;
+
+  while (!exit_condition)
+ // while((utc_offset != EXIT_OFFSET) && (count <= MAX_COUNT))
   {
     printf("Enter offset, or -100 to finish -> ");
     scanf("%d", &utc_offset);
@@ -289,19 +302,23 @@ void awareTimezone(long long timestamp)
       }
       offset[count] = utc_offset;
       count++;
+    }
+
+    if (utc_offset == EXIT_OFFSET || count >= MAX_COUNT)
+    {
+      exit_condition = TRUE;
     } 
   }
 
-  spanned_hours = max_offset - min_offset + 1;
 
   year = calcYear(&ts);
   month = calcMonth(&ts, year);
-
 
   for(int i = 0 ; i < count; i++)
   {
     showTimeInfo(ts, year, month, offset[i]);
   }
 
+  spanned_hours = max_offset - min_offset + 1;
   printf("Hours spanned: %d\n", spanned_hours);
 }
