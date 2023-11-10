@@ -13,9 +13,13 @@
  ******+*--*-*------*-**---**--***-**--**--*-***--**************************/
 
 #include <stdio.h>
-#include "timestamp.h"
 
-#define HOUR_OF_ONEDAY 24
+#define SECONDS_IN_A_MINUTE 60
+#define SECONDS_IN_A_HOUR (60*SECONDS_IN_A_MINUTE)
+#define SECONDS_IN_A_DAY (24*SECONDS_IN_A_HOUR)
+
+#define HOURS_IN_A_DAY 24
+#define DAYS_IN_A_YEAR 365
 
 #define MERIDIEM_PM 1
 #define MERIDIEM_AM 0
@@ -31,7 +35,8 @@
 
 void showTimeInfo (long long timestamp,int year, int month, int offset );
 void awareTimezone(long long timestamp);
-
+int calcYear(long long * timestamp);
+int calcMonth(long long * timestamp, int year);
 
 int main (void)
 {
@@ -107,34 +112,34 @@ int getNumOfDays(int month, int year)
 
 int calcYear(long long * timestamp)
 {
-  int year = EPOCH;
+  int year = 1970;
   int days;
   int days_in_year = 0;
 
-  days = *timestamp / SECONDS_IN_DAY;
+  days = *timestamp / SECONDS_IN_A_DAY;
 
   if (checkLeafYear(year))
   {
-    days_in_year = DAYS_IN_YEAR + 1;
+    days_in_year = DAYS_IN_A_YEAR + 1;
   }
   else
   {
-    days_in_year = DAYS_IN_YEAR;
+    days_in_year = DAYS_IN_A_YEAR;
   }
 
   while(days >= days_in_year)
   {
 
     days -= days_in_year;
-    *timestamp -= days_in_year*SECONDS_IN_DAY;
+    *timestamp -= days_in_year*SECONDS_IN_A_DAY;
     year++;
     if (checkLeafYear(year))
     {
-      days_in_year = DAYS_IN_YEAR + 1;
+      days_in_year = DAYS_IN_A_YEAR + 1;
     }
     else
     {
-      days_in_year = DAYS_IN_YEAR;
+      days_in_year = DAYS_IN_A_YEAR;
     }
   }
 
@@ -148,7 +153,7 @@ int calcMonth(long long * timestamp, int year)
   int days_of_month = 31; // 1
   int days_so_far = 0; //
 
-  days = *timestamp / SECONDS_IN_DAY;
+  days = *timestamp / SECONDS_IN_A_DAY;
   if(days <= days_of_month) //January
   {
     days_so_far = days;
@@ -164,7 +169,7 @@ int calcMonth(long long * timestamp, int year)
       days_of_month = getNumOfDays(month, year); 
     }
     
-    *timestamp = *timestamp - days_so_far * SECONDS_IN_DAY;
+    *timestamp = *timestamp - days_so_far * SECONDS_IN_A_DAY;
   }
   return month;
 }
@@ -183,15 +188,15 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
   int meridiem = MERIDIEM_AM; // Variable to store whether it is AM or PM.
 
   // Statements
-  secondOfDay = timestamp % SECONDS_IN_DAY;
-  seconds = secondOfDay % SECONDS_IN_MINUTE;
-  secondOfDay = secondOfDay / SECONDS_IN_MINUTE;
-  minutes = secondOfDay % SECONDS_IN_MINUTE;
-  secondOfDay = secondOfDay / SECONDS_IN_MINUTE;
-  hours = secondOfDay % HOUR_OF_ONEDAY;
+  secondOfDay = timestamp % SECONDS_IN_A_DAY;
+  seconds = secondOfDay % SECONDS_IN_A_MINUTE;
+  secondOfDay = secondOfDay / SECONDS_IN_A_MINUTE;
+  minutes = secondOfDay % SECONDS_IN_A_MINUTE;
+  secondOfDay = secondOfDay / SECONDS_IN_A_MINUTE;
+  hours = secondOfDay % HOURS_IN_A_DAY;
 
   // Display Time
-  days = timestamp / SECONDS_IN_DAY + 1;
+  days = timestamp / SECONDS_IN_A_DAY + 1;
   days_of_month = getNumOfDays(month, year);
 
   hours = hours + offset;
@@ -280,7 +285,6 @@ void awareTimezone(long long timestamp)
   int exit_condition = FALSE;
 
   while (!exit_condition)
- // while((utc_offset != EXIT_OFFSET) && (count <= MAX_COUNT))
   {
     printf("Enter offset, or -100 to finish -> ");
     scanf("%d", &utc_offset);
