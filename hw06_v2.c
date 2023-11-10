@@ -252,7 +252,7 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
    
 
   printf("UTC %d:   ", offset);
-  printf("%d-%d-%d ", years, months, days);
+  printf("%d-%d%d-%d%d ", years, months / 10,months % 10, days / 10, days % 10);
   printf("%d%d", hours / 10, hours % 10);
   printf(":%d%d", minutes / 10, minutes % 10);
   printf(":%d%d", seconds / 10, seconds % 10);
