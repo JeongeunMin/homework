@@ -178,7 +178,6 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
 {
   // Declarations
   long secondOfDay; // Variable to store the number of seconds since midnight.
-  int days_of_month;
   int years = year;
   int months = month;
   int days;
@@ -197,8 +196,6 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
 
   // Display Time
   days = timestamp / SECONDS_IN_A_DAY + 1;
-  days_of_month = getNumOfDays(month, year);
-
   hours = hours + offset;
 
   if (hours < 0)
@@ -207,8 +204,8 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
     days -= 1;
     if (days <= 0)
     {
-        days += days_of_month;
         months -= 1;
+        days += getNumOfDays(months, year);
         if (months <= 0)
         {
             months += 12;
@@ -220,10 +217,10 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
   {
     hours -= 24;
     days += 1;
-    if (days > days_of_month)
+    if (days > getNumOfDays(months, year))
     {
-        days -= days_of_month;
         months += 1;
+        days -= getNumOfDays(months, year);
         if(months > 12)
         {
             months -= 12;
