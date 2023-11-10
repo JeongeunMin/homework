@@ -205,12 +205,12 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
     if (days <= 0)
     {
         months -= 1;
-        days += getNumOfDays(months, year);
         if (months <= 0)
         {
             months += 12;
             years -= 1;
         }
+        days += getNumOfDays(months, year);
     }
   }
   else if (hours >= 24)
@@ -219,8 +219,8 @@ void showTimeInfo (long long timestamp, int year, int month, int offset)
     days += 1;
     if (days > getNumOfDays(months, year))
     {
-        months += 1;
         days -= getNumOfDays(months, year);
+        months += 1;
         if(months > 12)
         {
             months -= 12;
